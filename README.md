@@ -1,7 +1,9 @@
 # dropboxapiv2
-This is an api, written in c++, to access dropbox data with Oauth2.0 and dropbox api v2.
+This is an api, written in c++, to access dropbox data by dropbox api v2.
 
-Currently, this project only supports the download and upload functionality.
+Currently, this project supports the download, upload and delete file.
+
+To decrease dependencies, i didn't use json library. Instead, I parse the only information I need.
 
 Dependencies
 ------
@@ -18,18 +20,50 @@ Compile
 
 Usage
 ------
+Downloading example
 ###
     DropboxApiV2* api = new DropboxApiV2();
     api->SetAccessToken("access token"); //or
     api->RetrieveAccessToken("authorization token", "app key", "app secret");
-    api->DownloadFile("/","./dropbox",true,5);
+    api->DownloadFile("/","./dropbox",true,true,5);
+    delete api;
 ### Api arguments
-###
-    DownloadFile(const char* src, const char* dst, bool recursive, int numOfThread)
-        The first argument is the dropbox directory or file name with fully path you want to download.
-        The second argument is the directory or file name in the local machine you want to save the file.
-        The third argument is to download recursively or not.
-        The fourth argument is number of thread that you want to use simultaneously to download.
+Basically, api return an integer value. If the value is negative, something is wrong.
+
+Must call RetrieveAccessToken or SetAccessToken before use any other api.
+
+####int RetrieveAccessToken(const char* authorization_token, const char* app_key, const char* app_secret, char* buf=NULL, int buf_size=0)
+This function would retreive the access token with authorization token.
+
+        authorization_token: authorization token get from user
+        app_key: your app key
+        app_secret: your app secret
+        buf: if you want the access token, you can allocate the buffer to store it.
+####int SetAccessToken(const char* _access_token)
+        _access_token: if user retrieve access token by yourself, you can set access token before use api
+####int GetMetaData(const char* path, char* buf, int buf_size)
+        path: the file name with fully path
+        buf: buffer to store the metadata, user must allocate by his/herself
+        buf_size: buffer size
+####int DownloadFile(const char* src, const char* dst, bool sync, bool recursive, int numOfThread)
+        src: the dropbox directory or file name with fully path you want to download.
+        dst: the directory or file name in the local machine you want to save the file.
+        sync: if the dst directory has the same file name, dowloading file if and only if the file in dropbox is newer than locals
+        recursive: download recursively or not.
+        numOfThread: number of thread that you want to use simultaneously to download.
+####int UploadFile(const char* src,const char* dst, bool inclulde, bool recursive=false, int nOfThread=1);
+        src: the directory or file in the local
+        dst: the directory  in the dropbox or file name with fully path
+        inculde: if src is a directory, create this folder in the dropbox
+        recursive: recursively scan src directory
+        nOfThread: number of thread to use
+####int DeleteFile(const char* file)
+        file: delete a file or directory with fully path in dropbox
+####int StopWorking()
+you can call this function with another thread to stop downloading or uploading.
+        
+        
+        
 
    
 Access token
