@@ -27,12 +27,6 @@ typedef struct task
 		int len;
 		if(prefix)
 		{
-			/*
-			len = strlen(prefix);
-			dst_prefix = new char [len+1];
-			u8_unescape(dst_prefix,len,(char*)prefix);
-			dst_prefix[len] = '\0';
-			*/
 			dst_prefix = prefix;
 		}
 		
@@ -42,16 +36,12 @@ typedef struct task
 			file_name = new char [len+1] ;
 			
 			u8_unescape(file_name,len,(char*)file);
-			
-			//strncpy(file_name,file,len);
 			file_name[len] = '\0';
 		}
 			
 	}
 	~task()
 	{
-		//if(dst_prefix)
-			//delete [] dst_prefix;
 		if(file_name)
 			delete [] file_name;
 	}
