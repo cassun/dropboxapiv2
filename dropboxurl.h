@@ -9,6 +9,8 @@
 #define URL_UPLOAD				"https://content.dropboxapi.com/2/files/upload"
 #define URL_CREATE_FOLER		"https://api.dropboxapi.com/2/files/create_folder"
 #define URL_DELETE				"https://api.dropboxapi.com/2/files/delete"
+#define URL_GET_THUMNAIL		"https://content.dropboxapi.com/2/files/get_thumbnail"
+
 
 #define TAGTAG					"\".tag\""
 #define TAGFILE					"\"path_display\""

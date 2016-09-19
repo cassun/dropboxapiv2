@@ -540,7 +540,81 @@ int DropboxApiV2::DeleteFile(const char* file)
 	delete doc;
 	
 	return ret;
+}
+
+int DropboxApiV2::GetThumbnail(const char* file, unsigned char* buf, int buf_size, enum pic_format* format, enum pic_size* size)
+{
+	if(!file || file[0]!='/' || !buf || buf_size <=0)
+	{
+		fprintf(stderr,"Wrong parameters\n");
+		return ERR_PARAMETERS_NULL;
+	}
 	
+	DoCmd* doc = new DoCmd();
+	map<string,string> headers;
+	string path;
+	DCopyToBuf ctb(doc->GetCurl(), (char*)buf, (char*)buf+buf_size-1);
+	int ret;
+	
+	headers[WORD_AUTH] = access_token;
+	
+	path =  "{\"path\":\"";
+	path+=file;
+	path+="\"";
+	
+	if(format)
+	{
+		path+=",\"format\":{\".tag\":\"";
+		if(*format == jpg)
+			path+="jpeg";
+		else
+			path+="png";
+		path+="\"}";
+	}
+	
+	if(size)
+	{
+		string resize;
+		path+=",\"size\":{\".tag\":\"";
+		switch(*size)
+		{
+			case w32h32:
+				resize = "w32h32";
+				break;
+			case w64h64:
+				resize = "w64h64";
+				break;
+			case w128h128:
+				resize = "w128h128";
+				break;
+			case w640h480:
+				resize = "w640h480";
+				break;
+			case w1024h768:
+				resize = "w1024h768";
+				break;
+			default:
+				resize = "w32h32";
+		}
+		path+=resize;
+		path+="\"}";
+	}
+	
+	
+	path+="}";
+	
+	
+	headers[WORD_APIARG] = path;
+	
+	
+	ret = doc->Perform(URL_GET_THUMNAIL, headers, NULL, "POST", CopyToBuf, (void*)&ctb, NULL,NULL);
+	
+	//return size of thumbnail
+	if(ret >=0)
+		ret = ctb.c - (char*)buf;
+		
+	delete doc;
+	return ret;
 	
 }
 

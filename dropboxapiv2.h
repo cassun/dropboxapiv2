@@ -12,6 +12,9 @@ using std::queue;
 
 enum file_type{unknown,folder, file};
 enum task_action{download,upload,del};
+enum pic_format{jpg,png};
+enum pic_size{w32h32, w64h64, w128h128, w640h480, w1024h768};
+
 
 typedef struct task
 {
@@ -64,6 +67,7 @@ public:
 	int StopWorking();
 	int UploadFile(const char* src,const char* dst, bool inclulde, bool recursive=false, int nOfThread=1);
 	int DeleteFile(const char* file);
+	int GetThumbnail(const char* file, unsigned char* buf, int buf_size,enum pic_format* format=NULL, enum pic_size* size=NULL);
 public:
 	DropboxApiV2();
 	~DropboxApiV2();
