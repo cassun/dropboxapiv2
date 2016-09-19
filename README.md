@@ -9,13 +9,12 @@ libcurl and libssl
 
 Compile
 ------
-make
-
-(create the folder libs which contains lib and include)
-
-make samples
-
-(before compile the sample, you must modify the sample/download/main.cpp. Change the access token to yours)
+###
+    make
+    (create the folder libs which contains lib and include)
+###
+    make samples
+    (before compile the sample, you must modify the sample/download/main.cpp. Change the access token to yours)
 
 Usage
 ------
