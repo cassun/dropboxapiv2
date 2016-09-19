@@ -57,13 +57,13 @@ typedef struct task
 class DropboxApiV2
 {
 public:
-	int DownloadFile(const char* src,const char* dst, bool recursive=false, int nOfThread=1);
+	int DownloadFile(const char* src,const char* dst, bool sync=false, bool recursive=false, int nOfThread=1);
 	int SetAccessToken(const char* _access_token);
 	int GetMetaData(const char* path, char* buf, int buf_size);
 	int RetrieveAccessToken(const char* authorization_token, const char* app_key, const char* app_secret, char* buf=NULL, int buf_size=0);		//retreive access token by authorization token
 	int StopWorking();
 	int UploadFile(const char* src,const char* dst, bool inclulde, bool recursive=false, int nOfThread=1);
-	
+	int DeleteFile(const char* file);
 public:
 	DropboxApiV2();
 	~DropboxApiV2();

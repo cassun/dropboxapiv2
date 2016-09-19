@@ -36,7 +36,6 @@ DropboxApiV2::DropboxApiV2():MAX_BUF_SIZE(4096),MAX_STRING_LEN(256)
 	u_src = NULL;
 	u_dst = NULL;
 
-	//dSync = false;
 	dSync = false;
 	uSync = false;
 	
@@ -55,16 +54,6 @@ DropboxApiV2::~DropboxApiV2()
 	delete [] access_token;
 	delete [] cursor;
 
-/*
-	if(d_dst)
-		delete [] d_dst;
-	if(d_src)
-		delete [] d_src;
-	if(u_src)
-		delete [] u_src;
-	if(u_dst)
-		delete [] u_dst;
-*/
 	ClearTask();
 }
 
@@ -131,8 +120,7 @@ size_t DownloadParsing(void *ptr, size_t size, size_t nmemb, void *obj)
 								ret = snprintf(path,1024,"%s",api->GetDDst());
 								
 								u8_unescape(path+ret,1024-ret,(char*)display_s);
-								//snprintf(path,1024,"%s%s",api->GetDDst(),display_s);
-								//printf("2 %s\n",path);;
+
 								if(!stat(path,&filestat))
 								{
 									time_t dropboxt;
@@ -147,7 +135,6 @@ size_t DownloadParsing(void *ptr, size_t size, size_t nmemb, void *obj)
 									t.tm_mon-=1;
 									dropboxt = mktime(&t);
 									
-									//printf("time: %ld, %ld\n",dropboxt, filestat.st_mtime);
 									
 									if(dropboxt <= filestat.st_mtime)
 									{
@@ -207,7 +194,7 @@ int DropboxApiV2::CheckFileType(const char* path, enum file_type* type)
 	meta_buf = new char [MAX_BUF_SIZE];
 	
 	ret = GetMetaData(path, meta_buf, MAX_BUF_SIZE);
-	//printf("meta info:%s\nret:%d\n",meta_buf,ret);
+	
 	switch(ret)
 	{
 		case SUCCESS:
@@ -238,7 +225,7 @@ int DropboxApiV2::CheckFileType(const char* path, enum file_type* type)
 }
 
 
-int DropboxApiV2::DownloadFile(const char* src, const char* dst, bool recursive,int nOfThread)
+int DropboxApiV2::DownloadFile(const char* src, const char* dst, bool sync, bool recursive,int nOfThread)
 {
 	if(!dst || !src || src[0]!='/')
 		return ERR_PARAMETERS_NULL;
@@ -277,12 +264,12 @@ int DropboxApiV2::DownloadFile(const char* src, const char* dst, bool recursive,
 				folder_path+=postfix;
 			}	
 		}
-		//printf("folder:%s\n",folder_path.c_str());
+		
 		create_folder(folder_path.c_str());
 	}
 	
 
-	dSync = true;
+	dSync = sync;
 	
 	
 	FlushStore();
@@ -294,13 +281,6 @@ int DropboxApiV2::DownloadFile(const char* src, const char* dst, bool recursive,
 	char* post_data, *p;
 	int need_len;
 	
-	//copy src and dst path
-	/*
-	if(d_src)
-		delete [] d_src;
-	if(d_dst)
-		delete [] d_dst;
-	*/
 	malloc_and_copy_string(&d_src, MAX_STRING_LEN, src);
 	malloc_and_copy_string(&d_dst, MAX_STRING_LEN, dst);
 	
@@ -345,9 +325,9 @@ int DropboxApiV2::DownloadFile(const char* src, const char* dst, bool recursive,
 		//only folder need to parse the list
 		Openfile of(doc->GetCurl(),NULL,NULL,&_running);
 		
-		//printf("post_data:%s\n",post_data);
+		
 		has_more = false;
-		//ret = doc->Perform(URL_LIST_FOLDER, headers, post_data, "POST", DownloadParsing, (void*)this, download_header_callback,&of);
+		
 		ret = doc->Perform(URL_LIST_FOLDER, headers, post_data, "POST", DownloadParsing, (void*)this, NULL, NULL);
 		
 		
@@ -355,7 +335,6 @@ int DropboxApiV2::DownloadFile(const char* src, const char* dst, bool recursive,
 		{
 			FlushStore();
 			has_more=false;
-			//ret = doc->Perform(URL_DOWNLOAD_CONTINUE, headers, cursor, "POST", DownloadParsing, (void*)this, download_header_callback,&of);
 			ret = doc->Perform(URL_DOWNLOAD_CONTINUE, headers, cursor, "POST", DownloadParsing, (void*)this, NULL,NULL);
 		}
 		
@@ -421,8 +400,6 @@ void DropboxApiV2::MakeUploadTask(char* src_folder, const char* dst_folder, bool
 			else{
 				string full_path;
 
-				
-				//printf("prefix:%s, file:%s\n",prefix, entry->d_name);
 				full_path="";
 				if(prefix && strlen(prefix)>0)
 				{
@@ -430,8 +407,7 @@ void DropboxApiV2::MakeUploadTask(char* src_folder, const char* dst_folder, bool
 					full_path+='/';
 				}
 				full_path+=entry->d_name;
-				//printf("full_path:%s\n",full_path.c_str());
-				
+								
 				task* t = new task(file, upload, dst_folder, full_path.c_str());
 				PushTask(t);
 				
@@ -439,7 +415,6 @@ void DropboxApiV2::MakeUploadTask(char* src_folder, const char* dst_folder, bool
 			}
 			
 		}
-		
 		
 		if(count == 0 && recursive)
 		{
@@ -466,12 +441,6 @@ int DropboxApiV2::UploadFile(const char* src,const char* dst, bool inclulde, boo
 	
 	_running = true;
 
-/*
-	if(u_src)
-		delete [] u_src;
-	if(u_dst)
-		delete [] u_dst;
-*/
 	malloc_and_copy_string(&u_src, MAX_STRING_LEN*4, src);
 	malloc_and_copy_string(&u_dst, MAX_STRING_LEN*4, dst);
 	
@@ -492,12 +461,6 @@ int DropboxApiV2::UploadFile(const char* src,const char* dst, bool inclulde, boo
 		
 		if(inclulde)
 		{
-			/*
-			s = u_src;
-			while(s[0] != '\0' && s[0]=='.')s++;
-			if(s[0] == '/') s++;
-			*/
-			
 			s = strrchr(u_src,'/');
 			if(!s) s = u_src;
 			else s++;
@@ -511,16 +474,12 @@ int DropboxApiV2::UploadFile(const char* src,const char* dst, bool inclulde, boo
 			while(u_dst[len-1] == '/')u_dst[--len]='\0';
 		}
 		
-		//printf("u_src:%s\n",u_src);
-		//printf("u_dst:%s\n",u_dst);
-		
 		MakeUploadTask(u_src, u_dst,recursive,"", 1);
 		
 		RecycleThread();
 		
 		ClearTask();
 		
-
 	}
 	else{
 		
@@ -528,7 +487,7 @@ int DropboxApiV2::UploadFile(const char* src,const char* dst, bool inclulde, boo
 		map<string,string> headers;
 		string path;
 		FILE* fin;
-		//Openfile of(doc->GetCurl(),NULL,NULL,&_running);
+	
 		Openfile ofread(doc->GetCurl(),&fin,u_src,&_running);
 	
 		path =  "{\"path\":\"";
@@ -539,7 +498,6 @@ int DropboxApiV2::UploadFile(const char* src,const char* dst, bool inclulde, boo
 		headers[WORD_CONTENTTYPE] = "application/octet-stream";
 		headers[WORD_APIARG] = path;
 		
-		//ret = doc->Perform(URL_UPLOAD, headers, NULL, "POST", NULL, NULL, download_header_callback, &of, NULL, UploadReadBack, (void*)&ofread);
 		ret = doc->Perform(URL_UPLOAD, headers, NULL, "POST", NULL, NULL, NULL,NULL, NULL, UploadReadBack, (void*)&ofread);
 		if(ofread.is_open )
 			fclose(fin);
@@ -553,6 +511,36 @@ int DropboxApiV2::UploadFile(const char* src,const char* dst, bool inclulde, boo
 	delete [] u_dst;
 	
 	return ret;
+	
+}
+
+int DropboxApiV2::DeleteFile(const char* file)
+{
+	
+	if(!file || file[0] != '/')
+	{
+		fprintf(stderr,"file name should starts with /\n");
+		return ERR_PARAMETERS_NULL;
+	}
+	DoCmd* doc = new DoCmd();
+	map<string,string> headers;
+	string post_data;
+	int ret;
+	Openfile emptyof(doc->GetCurl(),NULL,NULL,&_running);
+	
+	headers[WORD_AUTH] = access_token;
+	headers[WORD_CONTENTTYPE] = "application/json";
+	
+	post_data = "{\"path\":\"";
+	post_data+=file;
+	post_data+="\"}";
+	
+	ret = doc->Perform(URL_DELETE, headers, post_data.c_str(), "POST", NULLEverything, (void*)&emptyof, NULL, NULL);
+	
+	delete doc;
+	
+	return ret;
+	
 	
 }
 
@@ -606,9 +594,6 @@ int DropboxApiV2::GetMetaData(const char* path, char* buf, int buf_size)
 	post_data+=path;
 	post_data+="\"}";
 	
-	//printf("meta post: %s\n",post_data.c_str());
-	
-	//ret = doc->Perform(URL_GET_META, headers, post_data.c_str(), "POST", CopyToBuf, (void*)&ctb, download_header_callback ,(void*)&of);
 	ret = doc->Perform(URL_GET_META, headers, post_data.c_str(), "POST", CopyToBuf, (void*)&ctb, NULL,NULL);
 	
 	*(ctb.c) = '\0';
@@ -639,8 +624,7 @@ void DropboxApiV2::DoWork()
 	
 	uheaders[WORD_AUTH] = access_token;
 	
-	//printf("access_token:%s\n",access_token);
-	//printf("doing work thread\n");
+
 	while(_running)
 	{
 		sem_wait(&sig_task);
@@ -651,10 +635,6 @@ void DropboxApiV2::DoWork()
 		{
 			case download:
 				snprintf(buf,MAX_STRING_LEN*4, "%s%s",t->dst_prefix, t->file_name);
-				//snprintf(buf,MAX_STRING_LEN-1, ".%s",t->src_file_name);
-				//printf("buf:%s\n",buf);
-				
-				//printf("file name:%s\n",t->file_name);
 				switch (t->type)
 				{	
 					case folder:		
@@ -670,7 +650,6 @@ void DropboxApiV2::DoWork()
 						
 						printf("dowloading: %s\n",buf);
 						
-						//dc->Perform(URL_DOWNLOAD, dheaders, NULL, "POST", CopyFile, (void*)&of, download_header_callback ,(void*)&of);
 						dc->Perform(URL_DOWNLOAD, dheaders, NULL, "POST", CopyFile, (void*)&of, NULL,NULL);
 						if(of.is_open)
 						{
@@ -700,20 +679,13 @@ void DropboxApiV2::DoWork()
 				{
 					case folder:
 						uheaders[WORD_CONTENTTYPE] = "application/json";
-						//dc->Perform(URL_CREATE_FOLER, uheaders, path.c_str(), "POST", NULLEverything, NULL, download_header_callback ,(void*)&of);
 						dc->Perform(URL_CREATE_FOLER, uheaders, path.c_str(), "POST", NULLEverything, &emptyof, NULL,NULL);
 						break;
 					case file:
 					
 						uheaders[WORD_CONTENTTYPE] = "application/octet-stream";
 						uheaders[WORD_APIARG] = path;
-						
-						//printf("----------------------------\n");
-						//printf("open file: %s\n",buf);
-						//printf("upload to %s\n",path.c_str());
-						
-						
-						//dc->Perform(URL_UPLOAD, uheaders, NULL, "POST", NULLEverything, NULL, download_header_callback, &emptyof, NULL, UploadReadBack, (void*)&ofread);
+					
 						dc->Perform(URL_UPLOAD, uheaders, NULL, "POST", NULLEverything, &emptyof, NULL,NULL, NULL, UploadReadBack, (void*)&ofread);
 						if(ofread.is_open ){
 							fclose(fin);
@@ -729,7 +701,6 @@ void DropboxApiV2::DoWork()
 				path =  "{\"path\":\"";
 				path+=t->file_name;
 				path+="\"}";
-				//dc->Perform(URL_DELETE, uheaders, path.c_str(), "POST", NULLEverything, NULL, download_header_callback ,(void*)&of);
 				dc->Perform(URL_DELETE, uheaders, path.c_str(), "POST", NULLEverything, &emptyof, NULL,NULL);
 				break;
 			default:
@@ -864,7 +835,6 @@ int DropboxApiV2::RetrieveAccessToken(const char* authorization_token, const cha
 	usrpwd = new char [key_len + secret_len + 2];
 	sprintf(usrpwd,"%s:%s",app_key, app_secret);
 	
-	//ret = doc->Perform(URL_AUTH2_AT, headers, post_data.c_str(), "POST", CopyToBuf, (void*)&ctb, download_header_callback ,(void*)&of, usrpwd);
 	ret = doc->Perform(URL_AUTH2_AT, headers, post_data.c_str(), "POST", CopyToBuf, (void*)&ctb,NULL,NULL, usrpwd);
 	
 	if(ret == SUCCESS)
@@ -923,5 +893,6 @@ int DropboxApiV2::StopWorking()
 		sem_post(&sig_task);
 	return SUCCESS;
 }
+
 
 
