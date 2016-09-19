@@ -23,8 +23,7 @@ Usage
 Downloading example
 ###
     DropboxApiV2* api = new DropboxApiV2();
-    api->SetAccessToken("access token"); //or
-    api->RetrieveAccessToken("authorization token", "app key", "app secret");
+    api->SetAccessToken("access token");
     api->DownloadFile("/","./dropbox",true,true,5);
     delete api;
 ### Api arguments
