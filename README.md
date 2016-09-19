@@ -58,18 +58,15 @@ This function would retreive the access token with authorization token.
         nOfThread: number of thread to use
 ####int DeleteFile(const char* file)
         file: delete a file or directory with fully path in dropbox
-<<<<<<< HEAD
 ####int GetThumbnail(const char* file, unsigned char* buf, int buf_size,enum pic_format* format=NULL, enum pic_size* size=NULL)
-		file: the file name, which is picture, with fully path in dropbox
-		buf: the buffer that user has to allocate to store thumbnail
-		buf_size: buffer size
-		format: the thumbnail format, dropbox only support png and jpg currently.
-		size: the thumbnail size
+	file: the file name, which is picture, with fully path in dropbox
+	buf: the buffer that user has to allocate to store thumbnail
+	buf_size: buffer size
+	format: the thumbnail format, dropbox only support png and jpg currently.
+	size: the thumbnail size
 ####
-		enum pic_format{jpg,png};
-		enum pic_size{w32h32, w64h64, w128h128, w640h480, w1024h768};
-=======
->>>>>>> 4b10c599c8e3888db9f72c3553089601b7484e35
+	enum pic_format{jpg,png};
+	enum pic_size{w32h32, w64h64, w128h128, w640h480, w1024h768};
 ####int StopWorking()
 you can call this function with another thread to stop downloading or uploading.
         
